@@ -51,6 +51,16 @@ module.exports = function (app) {
     });
   }
 
+  // Async function to delete Issue by _id.
+  function deleteBookById(bookid) {
+    return new Promise((resolve, reject) => {
+      Books.findOneAndDelete(
+          { _id: bookid },
+          (err, book) => err ? reject(null) : resolve(book)
+      );
+    });
+  }
+
   app.route('/api/books')
     .get((req, res) => {
       //response will be array of book objects
@@ -114,14 +124,34 @@ module.exports = function (app) {
       //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
     })
     
-    .post(function(req, res){
+    .post(async function(req, res){
       let bookid = req.params.id;
       let comment = req.body.comment;
-      //json res format same as .get
+      if (bookid && comment) {
+        let bookFound = await findBookById(bookid);
+        if (bookFound) {
+          bookFound.comments.push(comment);
+          bookFound.save((err, data) =>
+              err ?
+                  res.json({error: "no book exists"}) :
+                  res.json(data)
+          );
+        }
+        else {
+          res.json({error: "no book exists by that id"})
+        }
+      }
     })
     
-    .delete(function(req, res){
-      var bookid = req.params.id;
+    .delete(async function(req, res){
+      let bookid = req.params.id;
+      let bookDeleted = await deleteBookById(bookid);
+      if (bookDeleted !== null) {
+        res.send('delete successful')
+      }
+      else {
+        res.json({error: 'could not delete ' + bookid})
+      }
       //if successful response will be 'delete successful'
     });
   
