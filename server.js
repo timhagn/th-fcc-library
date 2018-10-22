@@ -1,5 +1,8 @@
 'use strict';
 
+// For local development.
+require('dotenv').config();
+
 var express     = require('express');
 var bodyParser  = require('body-parser');
 var cors        = require('cors');
@@ -9,6 +12,13 @@ var fccTestingRoutes  = require('./routes/fcctesting.js');
 var runner            = require('./test-runner');
 
 var app = express();
+
+// Add helmet() to prevent MIME type & XSS attacks.
+const helmet = require('helmet');
+app.use(helmet({
+  noCache: true,
+  setTo: 'PHP 4.2.0'
+}));
 
 app.use('/public', express.static(process.cwd() + '/public'));
 
